@@ -81,6 +81,9 @@ const char defifsvar[] = "IFS= \t\n";
 const char defifs[] = " \t\n";
 #endif
 
+int lineno;
+char linenovar[sizeof("LINENO=")+sizeof(int)*CHAR_BIT/3+1] = "LINENO=";
+
 /* Some macros in var.h depend on the order, add new variables to the end. */
 struct var varinit[] = {
 #if ATTY
@@ -98,6 +101,7 @@ struct var varinit[] = {
 	{ 0,	VSTRFIXED|VTEXTFIXED,		"PS2=> ",	0 },
 	{ 0,	VSTRFIXED|VTEXTFIXED,		"PS4=+ ",	0 },
 	{ 0,	VSTRFIXED|VTEXTFIXED,		"OPTIND=1",	getoptsreset },
+	{ 0,	VSTRFIXED|VTEXTFIXED,		linenovar,	0 },
 #ifndef SMALL
 	{ 0,	VSTRFIXED|VTEXTFIXED|VUNSET,	"TERM\0",	0 },
 	{ 0,	VSTRFIXED|VTEXTFIXED|VUNSET,	"HISTSIZE\0",	sethistsize },
@@ -330,8 +334,12 @@ lookupvar(const char *name)
 {
 	struct var *v;
 
-	if ((v = *findvar(hashvar(name), name)) && !(v->flags & VUNSET))
+	if ((v = *findvar(hashvar(name), name)) && !(v->flags & VUNSET)) {
+		if (v == &vlineno && v->text == linenovar) {
+			fmtstr(linenovar+7, sizeof(linenovar)-7, "%d", lineno);
+		}
 		return strchrnul(v->text, '=') + 1;
+	}
 	return NULL;
 }
 

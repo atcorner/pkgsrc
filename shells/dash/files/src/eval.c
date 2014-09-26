@@ -213,7 +213,9 @@ evaltree(union node *n, int flags)
 		status = !exitstatus;
 		goto setstatus;
 	case NREDIR:
-		errlinno = n->nredir.linno;
+		errlinno = lineno = n->nredir.linno;
+		if (funcline)
+			lineno -= funcline - 1;
 		expredir(n->nredir.redirect);
 		pushredir(n->nredir.redirect);
 		status = redirectsafe(n->nredir.redirect, REDIR_PUSH);
@@ -372,7 +374,9 @@ evalfor(union node *n, int flags)
 	struct strlist *sp;
 	struct stackmark smark;
 
-	errlinno = n->nfor.linno;
+	errlinno = lineno = n->nfor.linno;
+	if (funcline)
+		lineno -= funcline - 1;
 
 	setstackmark(&smark);
 	arglist.lastp = &arglist.list;
@@ -415,7 +419,9 @@ evalcase(union node *n, int flags)
 	struct arglist arglist;
 	struct stackmark smark;
 
-	errlinno = n->ncase.linno;
+	errlinno = lineno = n->ncase.linno;
+	if (funcline)
+		lineno -= funcline - 1;
 
 	setstackmark(&smark);
 	arglist.lastp = &arglist.list;
@@ -448,7 +454,9 @@ evalsubshell(union node *n, int flags)
 	int backgnd = (n->type == NBACKGND);
 	int status;
 
-	errlinno = n->nredir.linno;
+	errlinno = lineno = n->nredir.linno;
+	if (funcline)
+		lineno -= funcline - 1;
 
 	expredir(n->nredir.redirect);
 	if (!backgnd && flags & EV_EXIT && !have_traps())
@@ -681,7 +689,9 @@ evalcommand(union node *cmd, int flags)
 	int status;
 	char **nargv;
 
-	errlinno = cmd->ncmd.linno;
+	errlinno = lineno = cmd->ncmd.linno;
+	if (funcline)
+		lineno -= funcline - 1;
 
 	/* First expand the arguments. */
 	TRACE(("evalcommand(0x%lx, %d) called\n", (long)cmd, flags));
