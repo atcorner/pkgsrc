@@ -18,6 +18,8 @@ HOMEPAGE=	http://racket-lang.org/
 COMMENT=	Scheme-based dialect of Lisp
 LICENSE=	gnu-lgpl-v2
 
+NOT_FOR_PLATFORM=	SunOS-*-*
+
 CONFLICTS+=	drscheme-[0-9]* mzscheme-[0-9]* racket-textual-[0-9]*
 
 WRKSRC=		$(WRKDIR)/$(PKGNAME_NOREV)

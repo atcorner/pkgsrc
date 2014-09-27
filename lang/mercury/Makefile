@@ -13,6 +13,8 @@ MAINTAINER=		pkgsrc-users@NetBSD.org
 HOMEPAGE=		http://www.mercurylang.org/
 COMMENT=		Modern logic/functional programming language
 
+NOT_FOR_PLATFORM=	SunOS-*-*
+
 GNU_CONFIGURE=		yes
 USE_TOOLS+=		gmake pax bison flex
 USE_TOOLS+=		perl # ?
