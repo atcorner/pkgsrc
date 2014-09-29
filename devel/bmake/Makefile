@@ -33,7 +33,7 @@ CONFIGURE_ARGS+=	--sysconfdir=${PKG_SYSCONFDIR}
 .include "../../mk/bsd.prefs.mk"
 
 .if !empty(MACHINE_PLATFORM:MSunOS-5.11-*)
-CONFIGURE_ARGS+=	--with-defshell=/bin/ksh93
+CONFIGURE_ARGS+=	--with-defshell=/bin/bash
 #DEPENDS+=		dash-[0-9]*:../../shells/dash
 #CONFIGURE_ARGS+=	--with-defshell=${PREFIX}/bin/dash
 .elif ${OPSYS} == "SunOS" || ${OPSYS} == "OSF1" || ${OPSYS} == "IRIX"

@@ -791,7 +791,7 @@ SunOS)
 	else
 		need_sed=yes
 	fi
-	bootstrap_sh=${SH:-/bin/ksh93}
+	bootstrap_sh=${SH:-/bin/bash}
 	bootstrap_sh_set=set
 	#if [ true ]; then
 	#	need_dash=yes
