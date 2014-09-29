@@ -11,8 +11,8 @@
 #
 
 CFLAGS = -g
-CFLAGS = -O3
-#CFLAGS =
+CFLAGS = -O2
+CFLAGS =
 
 CC = gcc -Wall -g -Wwrite-strings
 CC = gcc -fprofile-arcs -ftest-coverage
