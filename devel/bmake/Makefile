@@ -32,7 +32,7 @@ CONFIGURE_ARGS+=	--sysconfdir=${PKG_SYSCONFDIR}
 
 .include "../../mk/bsd.prefs.mk"
 
-.if !empty(MACHINE_PLATFORM:MSunOS-5.11-*)
+.if !empty(MACHINE_PLATFORM:MpdkshSunOS-5.11-*)
 CONFIGURE_ARGS+=	--with-defshell=/bin/sh
 #DEPENDS+=		dash-[0-9]*:../../shells/dash
 #CONFIGURE_ARGS+=	--with-defshell=${PREFIX}/bin/dash
