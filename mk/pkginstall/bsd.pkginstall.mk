@@ -844,7 +844,7 @@ ${_INSTALL_SHELL_FILE}: ../../mk/pkginstall/shell
 #
 SHLIB_TYPE=		${_SHLIB_TYPE_cmd:sh}
 _SHLIB_TYPE_cmd=							\
-	sh ${.CURDIR}/../../mk/scripts/shlib-type			\
+	${.CURDIR}/../../mk/scripts/shlib-type				\
 		${_OPSYS_SHLIB_TYPE:Q} ${PKG_INFO_CMD:Q}
 
 LDCONFIG_ADD_CMD?=		${_LDCONFIG_ADD_CMD.${OPSYS}}
