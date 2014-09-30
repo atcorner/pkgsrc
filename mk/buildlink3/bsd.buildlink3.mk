@@ -705,7 +705,7 @@ ${_BLNK_COOKIE.${_pkg_}}:
 				dest=`${ECHO} $$dest | ${SED} ${BUILDLINK_FNAME_TRANSFORM.${_pkg_}}`; \
 				msg="$$src -> $$dest";			\
 			fi;						\
-			dir=`${DIRNAME} "$$dest"`;			\
+			dir="$${dest%/*}";				\
 			if [ ! -d "$$dir" ]; then			\
 				${MKDIR} "$$dir";			\
 			fi;						\
