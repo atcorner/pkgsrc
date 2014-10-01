@@ -719,12 +719,30 @@ ${_BLNK_COOKIE.${_pkg_}}:
 				msg="$$msg (created)";			\
 				;;					\
 			*)						\
-				${LN} -sf "$$src" "$$dest";		\
+				${ECHO} "$$src" "$$dest";		\
 				;;					\
 			esac;						\
 		fi;							\
 		${ECHO} "$$msg" >> ${.TARGET};				\
-	done
+	done | ${AWK} '{						\
+			src = srcf = $$1;				\
+			dst = dstf = dstd = $$2;			\
+			sub(/.*\//, "", srcf);				\
+			sub(/.*\//, "", dstf);				\
+			sub(/\/[^\/]*$$/, "", dstd);			\
+			if (srcf == dstf) {				\
+				if (dstd in links)			\
+					links[dstd] = links[dstd] " " src;	\
+				else					\
+					links[dstd] = src;		\
+			} else {					\
+				system("ln -fs " src " " dst);		\
+			}						\
+		}							\
+		END {							\
+			for (var in links)				\
+				system("ln -fs " links[var] " " var);	\
+		}'
 
 # _BLNK_LT_ARCHIVE_FILTER.${_pkg_} is a command-line filter used in
 # the previous target for transforming libtool archives (*.la) to
