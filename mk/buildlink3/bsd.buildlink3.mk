@@ -626,8 +626,8 @@ buildlink-directories:
 #	into a destination filename, e.g. -e "s|/curses.h|/ncurses.h|g"
 #
 .for _pkg_ in ${_BLNK_PACKAGES}
-_BLNK_COOKIE.${_pkg_}=		${BUILDLINK_DIR}/.buildlink_${_pkg_}_done
-
+_BLNK_COOKIE.${_pkg_}=		${BUILDLINK_DIR}/.buildlink_${_pkg_}_files
+_BLNK_COOKIE_FILES+=		${_BLNK_COOKIE.${_pkg_}}
 _BLNK_TARGETS+=			buildlink-${_pkg_}
 _BLNK_TARGETS.${_pkg_}=		buildlink-${_pkg_}-message
 _BLNK_TARGETS.${_pkg_}+=	${_BLNK_COOKIE.${_pkg_}}
@@ -694,55 +694,27 @@ ${_BLNK_COOKIE.${_pkg_}}:
 	${_BLNK_FILES_CMD.${_pkg_}} |					\
 	while read file; do						\
 		src="${_CROSS_DESTDIR}${BUILDLINK_PREFIX.${_pkg_}}/$$file";		\
-		if [ ! -f "$$src" ]; then					\
-			msg="$$src: not found";				\
-		else							\
+		if [ -f "$$src" ]; then					\
 			if [ -z "${BUILDLINK_FNAME_TRANSFORM.${_pkg_}:Q}" ]; then \
 				dest="$$buildlink_dir/$$file";		\
-				msg="$$src";				\
 			else						\
-				dest="$$buildlink_dir/$$file";		\
-				dest=`${ECHO} $$dest | ${SED} ${BUILDLINK_FNAME_TRANSFORM.${_pkg_}}`; \
-				msg="$$src -> $$dest";			\
-			fi;						\
-			dir="$${dest%/*}";				\
-			if [ ! -d "$$dir" ]; then			\
-				${MKDIR} "$$dir";			\
-			fi;						\
-			if [ -e "$$dest" ]; then			\
-				${RM} -f "$$dest";			\
+				dest=`${ECHO} $$buildlink_dir/$$file| ${SED} ${BUILDLINK_FNAME_TRANSFORM.${_pkg_}}`; \
 			fi;						\
 			case "$$src" in					\
 			*.la)						\
+				dir=`${DIRNAME} "$$dest"`;		\
+				if [ ! -d $$dir ]; then			\
+					${MKDIR} $$dir;			\
+				fi;					\
 				${_BLNK_LT_ARCHIVE_FILTER.${_pkg_}}	\
 					"$$src" > "$$dest";		\
-				msg="$$msg (created)";			\
 				;;					\
 			*)						\
-				${ECHO} "$$src" "$$dest";		\
+				${ECHO} "$$src:$$dest" >> ${.TARGET};	\
 				;;					\
 			esac;						\
 		fi;							\
-		${ECHO} "$$msg" >> ${.TARGET};				\
-	done | ${AWK} '{						\
-			src = srcf = $$1;				\
-			dst = dstf = dstd = $$2;			\
-			sub(/.*\//, "", srcf);				\
-			sub(/.*\//, "", dstf);				\
-			sub(/\/[^\/]*$$/, "", dstd);			\
-			if (srcf == dstf) {				\
-				if (dstd in links)			\
-					links[dstd] = links[dstd] " " src;	\
-				else					\
-					links[dstd] = src;		\
-			} else {					\
-				system("ln -fs " src " " dst);		\
-			}						\
-		}							\
-		END {							\
-			for (var in links)				\
-				system("ln -fs " links[var] " " var);	\
-		}'
+	done
 
 # _BLNK_LT_ARCHIVE_FILTER.${_pkg_} is a command-line filter used in
 # the previous target for transforming libtool archives (*.la) to
@@ -831,6 +803,47 @@ _BLNK_LT_ARCHIVE_FILTER_SED_SCRIPT.${_pkg_}+=				\
 .    endif
 .  endif
 .endfor
+
+#
+# Batch up all of the buildlink cookie files for efficient symlink creation.
+#
+_BLNK_TARGETS+=	buildlink-perform-links
+.PHONY: buildlink-perform-links
+buildlink-perform-links: ${_BLNK_COOKIE_FILES}
+	${RUN} ${CAT} ${_BLNK_COOKIE_FILES}				\
+	| ${AWK} -F: '{print length($$0) ":" $$0;}' | ${SORT} -t: -k1rn	\
+	| ${SED} -e 's,^[^:]*:,,'					\
+	| ${AWK} -F: '							\
+	{								\
+		src = srcfile = $$1;					\
+		dest = destfile = destdir = $$2;			\
+		sub(/.*\//, "", srcfile);				\
+		sub(/.*\//, "", destfile);				\
+		sub(/\/[^\/]*$$/, "", destdir);				\
+		if (srcfile == destfile) {				\
+			if (destdir in links)				\
+				links[destdir] = links[destdir] " " src; \
+			else						\
+				links[destdir] = src;			\
+		} else {						\
+			renames[dest] = src;				\
+		}							\
+		if (!(destdir in seendirs)) {				\
+			seendirs[destdir] = 1;				\
+			if (dirs)					\
+				dirs = dirs " " destdir;		\
+			else						\
+				dirs = destdir;				\
+		}							\
+	}								\
+	END {								\
+		if (dirs)						\
+			print "${MKDIR} " dirs;				\
+		for (dir in links) 					\
+			print "${LN} -fs " links[dir] " " dir;		\
+		for (dest in renames) 					\
+			print "${LN} -fs " renames[dest] " " dest;	\
+	}' | ${SH}
 
 # Include any BUILDLINK_TARGETS provided in buildlink3.mk files in
 # _BLNK_TARGETS.
